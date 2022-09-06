@@ -1,0 +1,113 @@
+import numpy as np 
+class Vertice:
+    def __init__(self, i): #cosas que necesitan los puntos a tratar 
+        #nombre, valor, vecinos, si ya visito un punto 
+        self.id = i
+        self.vecinos = []
+        self.anterior = None
+        self.visitados = False
+        self.costo = float('inf') #valor infinito para conincidir con Bellman-Ford
+
+    def addVecino(self, v, p): #Funcion para manipular los vecinos
+        if v not in self.vecinos: #Verifica si el punto a tratar ya esta en la lista
+            self.vecinos.append([v,p]) #se agrega en vecinos y nos permite hacer una grafica 
+
+#----------------------------------Establecimiento de caracteristicas------------------
+            
+#---------------------------------INICIO DE CONSTRUCCION DE GRAFOS-----------------
+class Grafos:
+    def __init__(self):
+        self.vertices = {} #Se crea un diccionario donde más adelante se van a guardar objetos tipo Vertice
+
+    def addVertice(self,id): #se agregan los elementos del diccionario en base al nombre del vertice
+        if id not in self.vertices:
+            self.vertices[id] = Vertice(id) #Se guarda un objeto tipo vertice con su id correspondiente
+
+    def addArista(self, a, b, c): #recibe los 2 vertices que se van a conectar por una arista y su costo
+        if a in self.vertices and b in self.vertices: #checa si esta en vertices 
+            self.vertices[a].addVecino(b,c) #Agrega el vecino 'b' con el peso de la arista que los conecta en el diccionario con el id 'a'
+            self.vertices[b].addVecino(a,c) #Agrega el vecino 'a' con el peso de la arista que los conecta en el diccionario con el id 'b'
+            #dos sentidos
+
+#----------------------------------TERMINO DE CONSTRUCCION DE GRAFOS----------------------------
+
+#----------------------------------INCIO DE ALGORITMOS PARA RESOLUCION----------------------------
+    
+ 
+#1)Asignar al nodo inicial una distancia tentativa de 0 y al resto el valor 'infinito'; asignar también predecesor nulo para todos.
+#2)Establecer al nodo inicial como nodo actual y crear un conjunto de nodos no visitados con todos los nodos.
+#3)Mientras el conjunto de nodos no visitados no está vacío:
+#4)Para el nodo actual u, considerando sus vecinos no visitados (v) con peso w en sus aristas: 
+# a. Si la distancia del nodo u sumada con el peso w es menor a la distancia del nodo v, actualizar la distancia de vy guardar a u como predecesor de v.
+#5)Cuando se han revisado todos los vecinos de u, se marca como visitado y se elimina del conjunto no visitado.
+#6)Seleccionar el nodo no visitado con menor distancia tentativa y marcarlo como nuevo nodo actual. 
+# Regresar al paso 3
+
+    def Dijkstra(self, a):
+        if a in self.vertices: #Verificamos si el vertice existe en vertices 
+
+            self.vertices[a].costo = 0 #Igualamos a 0 ya que es nuestra linea de inicio
+            actual = a #variable auxuliar que guarda el punto de inicio 
+            noVisitados = [] #lista de vertices no visitados
+
+            for v in self.vertices: # Recorremos todos los vertices en nuestro diccionario
+                #Aplicacion del algoritmo de Bellman-Ford
+                if v != a: 
+                    self.vertices[v].costo = float('inf') # Para todos los vertices (excepto el de partida) ponemos un valor infinito
+                self.vertices[v].anterior = None # Para todos los vertices les ponemos un vertice predecesor nulo
+                noVisitados.append(v) # Agregamos los vertices a la lista de no visitados
+            
+            while len(noVisitados) > 0: # Mientras nuestra lista de no visitados tenga elementos dentro:
+                for vecino in self.vertices[actual].vecinos: # Recorre todos los vecinos de nuestro vertice actual
+                    if self.vertices[vecino[0]].visitados == False: # vecino[0] nos da el id del vertice vecino de nuestro vertice actual, y ve si compara si ya se visitó
+                        if self.vertices[actual].costo + vecino[1] < self.vertices[vecino[0]].costo: # Si el costp del vertice actual más la del vecino es menor que el peso del vecino en ese momento
+                            self.vertices[vecino[0]].costo = self.vertices[actual].costo + vecino[1]
+                            self.vertices[vecino[0]].anterior = actual #El vertice anterior del vecino en ese momento es el vertice actual
+
+                self.vertices[actual].visitado = True #Marcamos como visitado el vertice actual
+                noVisitados.remove(actual) #Eliminamos el dato que indicamos 
+
+                actual = self.minimo(noVisitados) #Seleccionamos al vertice con el menor peso y repetimos el proceso
+           
+            else:
+                return False #A no exste en vertices 
+
+    def minimo(self, listaNV): #recibe la lista de los vertices no visitados
+        if len(listaNV)>0: #Revisa si aun hay vertices que visitar
+            cost = self.vertices[listaNV[0]].costo
+            v = listaNV[0]
+            for e in listaNV:
+                if cost < self.vertices[e].costo: #realiza comparaciones de los costos de cada vértice en la lista para encontrar el de menor valor
+                    cost = self.vertices[e].costo
+                    v = e
+            return v
+
+    def recorrido(self, v): #funcion de impresion del resultado del algoritmo
+        recorrido = []
+        actual = v
+        while actual != None:
+            recorrido.insert(0, actual) #Insertamos en la lista del recorrido al inicio (0) el valor actual que es el id del vertice
+            actual = self.vertices[actual].anterior #Actualizamos actual con el vertice anterior visitado
+        return (recorrido, self.vertices[v].costo) #devuelve la lista recirrido y el peso de todo el recorrido
+
+#----------------------------------TERMINO DE ALGORITMOS PARA RESOLUCION----------------------------
+g = Grafos()
+g.addVertice("A") 
+g.addVertice("B") 
+g.addVertice("C") 
+g.addVertice("D") 
+g.addVertice("E") 
+g.addVertice("F")
+g.addArista("A","F",14)
+g.addArista("A", "B", 7)
+g.addArista("A", "C", 9)
+g.addArista("B", "C", 10)
+g.addArista("B", "D", 15)
+g.addArista("C", "D", 11)
+g.addArista("C", "F", 2)
+g.addArista("D", "E", 6)
+g.addArista("E", "F", 9)
+
+print("\n\nLa ruta y el costo de la ruta mas barata es:")
+g.Dijkstra('A')
+print(g.recorrido('F'))
